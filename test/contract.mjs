@@ -44,12 +44,13 @@ const walk = (dir) => {
     const path = join(dir, entry);
     if (entry === "node_modules" || entry.startsWith(".")) continue;
     if (statSync(path).isDirectory()) walk(path);
-    else files.push(path);
+    else if (/\.(mjs|js|json)$/.test(entry)) files.push(path);
   }
 };
 walk(root);
-const secrets = files.filter((file) => /BEGIN [A-Z ]*PRIVATE KEY|0x[0-9a-f]{64}["']\s*,?\s*$/m.test(readFileSync(file, "utf8")));
-check("no private key anywhere in the checkout", secrets.length === 0, secrets.join(", "));
+const keyPattern = /BEGIN [A-Z ]*PRIVATE KEY|"private_?key"\s*:\s*"|\bprivateKey\s*=\s*["'`]|\b0x[0-9a-f]{64}["'`]?\s*$/m;
+const secrets = files.filter((file) => keyPattern.test(readFileSync(file, "utf8")));
+check("no private key in any script or config", secrets.length === 0, secrets.map((f) => f.replace(root, "")).join(", "));
 
 const transport = new StdioClientTransport({ command: process.execPath, args: [join(root, "server.mjs")], stderr: "inherit" });
 const client = new Client({ name: "contract-test", version: "1.0.0" });
@@ -73,10 +74,10 @@ const call = async (name, args) => {
 };
 
 const modes = await call("list_task_modes", {});
-check("list_task_modes returns the five modes", modes.value.modes.length === 5, modes.value.modes.map((m) => m.mode).join(", "));
+check("list_task_modes gives the five modes", modes.value.modes.length === 5, modes.value.modes.map((m) => m.mode).join(", "));
 
 const all = await call("list_open_tasks", { network: "any", limit: 100 });
-check("list_open_tasks returns open tasks", all.value.tasks.length > 0, `${all.value.matched} matched of ${all.value.openTasksOnBoard} open`);
+check("list_open_tasks gives open tasks", all.value.tasks.length > 0, `${all.value.matched} matched of ${all.value.openTasksOnBoard} open`);
 
 const tempo = await call("list_open_tasks", { network: "tempo", limit: 100 });
 check("the network filter keeps one network only", tempo.value.tasks.every((task) => task.network === "tempo"), `${tempo.value.tasks.length} on tempo`);

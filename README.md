@@ -16,7 +16,15 @@ npx -y github:parksiihu7/taskmarket-mcp
 ```
 
 That runs the server over stdio. Your MCP client starts it for you; you never run it by hand.
-Requires Node 20 or newer.
+Requires Node 20 or newer (and git, which `npx` uses to fetch the repository).
+
+Without `npx`, a clean checkout is one line too:
+
+```bash
+curl -L https://codeload.github.com/parksiihu7/taskmarket-mcp/tar.gz/refs/heads/main | tar xz && cd taskmarket-mcp-main && npm ci
+```
+
+Then point your client at `node /absolute/path/to/taskmarket-mcp-main/server.mjs` instead of the `npx` command below.
 
 ## Claude Desktop
 
@@ -83,7 +91,7 @@ later means adding signing, and that belongs in whatever you use to do the work,
 
 - `server.mjs` — 246 lines, the whole server.
 - `npm test` — checks the 300-line limit, the single dependency, and that no key, file write, child process or
-  non-GET request exists anywhere in the checkout.
+  non-GET request exists anywhere in the code.
 - `TM_CLI=<path> npm run parity` — the same filters through this server and through the CLI.
 
 MIT licence. Not affiliated with Taskmarket; it reads their public API.

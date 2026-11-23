@@ -1,0 +1,144 @@
+notes.txt — Taskmarket MCP (TSK-XW6AGNNW)
+=========================================
+
+WHAT IS IN THE ENTRY
+-------------------
+server.mjs           the MCP server, 246 lines, stdio, one dependency (@modelcontextprotocol/sdk)
+package.json / lock   the single dependency, pinned by package-lock.json
+README.md            99 lines (limit 120): one-command install, Claude Desktop / Cursor / VS Code config, the read-only note
+transcript.md        a recorded MCP session: all three tools answering, the CLI beside the same filters
+listing.md           drafts for three MCP directories, not submitted
+test/contract.mjs    the entry's own acceptance points, as checks (npm test)
+test/parity.mjs      the same filters through the server and through the Taskmarket CLI
+scripts/session.mjs  the client used for transcript.md
+LICENSE              MIT
+Public repository    https://github.com/parksiihu7/taskmarket-mcp  (commit 68f8a27)
+
+
+1. EVERY CLAIM ABOUT TASKMARKET, AND THE FACT-SHEET LINE BEHIND IT
+-----------------------------------------------------------------
+The fact sheet is in the brand kit (0-TASKMARKET-BRAND-KIT.md, section "Fact sheet"), commit
+af55554d77b0627ff96b52a82a2f3b94b9cab387. Line numbers are that file's bullet order in the list under
+"Only these claims."
+
+claim: Taskmarket is a marketplace where agents and people post paid tasks and do them
+  used in: README (first line), listing.md (description), server.mjs (server instructions)
+  fact sheet: bullet 1 — "Taskmarket (https://taskmarket.dev) is a marketplace where AI agents and people post
+  paid tasks and do them."
+
+claim: a reward is held in escrow before anyone starts, until the requester accepts a result or reclaims it
+  used in: README ("Safety"), listing.md ("Rewards stay in escrow until a requester accepts"),
+  server.mjs (list_task_modes note)
+  fact sheet: bullet 2 — "A requester posts a task with a reward. The reward is held in escrow on-chain before
+  anyone starts, until the requester accepts a result or reclaims it."
+
+claim: rewards are paid in a stablecoin, USDC on Base and OUSD on Tempo
+  used in: README (filters paragraph), listing.md (description), tool descriptions (network: tempo = OUSD,
+  base = USDC), and the currency field of every task the tools print
+  fact sheet: bullet 3 — "Rewards are paid in a stablecoin: USDC on Base, OUSD on Tempo."
+
+claim: the five modes, in the words list_task_modes prints
+  bounty "many workers submit; the requester picks one or more winners", claim "one worker reserves the task",
+  pitch "workers pitch; the requester selects one", benchmark "entries are ranked on a metric",
+  auction "workers bid on price"
+  used in: list_task_modes, README (tool table), listing.md
+  fact sheet: bullet 4 — "Task modes: bounty (many submit; the requester picks one or more winners), claim (one
+  worker reserves the task), pitch (workers pitch; the requester selects one), benchmark (entries ranked on a
+  metric), auction (workers bid on price)."
+
+claim: workers submit, the requester accepts, the reward is released from escrow to the winner or winners
+  used in: README ("what it asks" is phrased from this), list_task_modes note
+  fact sheet: bullet 5 — "Workers submit their work; the requester accepts it; the reward is released from escrow
+  to the winner or winners."
+
+claim: requesters can limit a task to verified workers, by TAP verification
+  used in: the verifiedOnly filter and the verifiedWorkersRequired field; README and listing.md name it as the
+  CLI does (--verified-by tap:identity:verified)
+  fact sheet: bullet 6 — "Requesters can limit a task to verified workers, for example TAP verification: the
+  agent's signing key is listed in Visa's agent directory after its owner verifies once with a Visa card."
+
+claim: the CLI is the tool the server's filters are checked against
+  used in: transcript.md section 2 and 5, test/parity.mjs
+  fact sheet: bullet 9 — "Agents use the command-line tool: npm i -g @lucid-agents/taskmarket"
+
+Not used anywhere in the entry, and deliberately so: reputation (bullet 7), projects and backers (bullet 8), the
+site's tagline (bullet 10). Nothing in the entry states a user number, an earning, a fee, a partner or a launch
+date. The only numbers in the entry are observed values with the moment they were read: "62 open tasks, 56 on
+tempo, 6 on base, 15 matching" in transcript.md, which is what the public board held at 2026-11-24 05:18 KST.
+
+Banned words: the kit's list was grepped across every file in the entry (README.md, transcript.md,
+listing.md, notes.txt, server.mjs and its tool descriptions, test/*.mjs, scripts/session.mjs) and not one
+appears. The grep used the list in the kit's Voice section as written, not a paraphrase, so it covered the
+money-framing words the hard rules call out as well as the obvious ones.
+
+Brand kit: this is a code entry, so no poster, carousel or video was made and no visual checklist applies. Where
+the kit's voice applies (README, listing.md, tool descriptions) the copy is short, plain and says what happens;
+exact commands are written as typed. The kit's own assets, fonts and colours were not needed and none are
+redistributed here.
+
+
+2. CHECKABLE CLAIMS ABOUT THE CODE ITSELF
+----------------------------------------
+claim: it runs from a clean checkout with the README's command
+  how to check, from the public repository (recorded 2026-11-24 05:52 KST):
+    curl -L https://codeload.github.com/parksiihu7/taskmarket-mcp/tar.gz/refs/heads/main | tar xz
+    cd taskmarket-mcp-main && npm ci && node server.mjs
+  result: npm ci installed 1 package tree, the server printed "ready on stdio (read-only)" and exited on stdin EOF
+claim: results match the CLI for the same filters
+  how to check: TM_CLI=<taskmarket CLI entry> npm run parity — compares every id, seven filter sets
+  result: 7 of 7 identical, including order (transcript.md, section 5)
+claim: no write path exists in the code
+  how to check: npm test — 17 checks, among them: no writeFile/child_process, no method other than GET, no
+  /api/submissions|claims|bids|pitches endpoint, no key material in any script or config
+  result: 17 of 17 pass
+claim: at most 300 lines, official MCP SDK as the only dependency
+  how to check: sed -n '$=' server.mjs  ->  246;  node -e "console.log(require('./package.json').dependencies)"
+  result: 246 lines, {"@modelcontextprotocol/sdk": "^1.32.2"}
+
+Two things could not be exercised in the machine this was built on, and are stated rather than claimed:
+  - "npx -y github:parksiihu7/taskmarket-mcp" — this sandbox refuses git network operations by policy
+    ("GitHub is not connected"), so the npx route was not run here. The repository's own tarball route above was
+    run instead, from the same commit. On a machine with git, the npx line is the standard way to run a public
+    repository package and needs no install step.
+  - The desktop clients (Claude Desktop, Cursor, VS Code) cannot run in this environment. transcript.md is a real
+    session with the MCP SDK's own client over the same stdio transport those clients use; it says so in its
+    first paragraph.
+
+
+3. TOOLS AND MODELS USED
+-----------------------
+Tools: Node.js v24.22.3 and npm 11.19.1; @modelcontextprotocol/sdk 1.32.2 (the entry's only dependency);
+the Taskmarket CLI (@lucid-agents/taskmarket, already installed) for the parity comparison; curl for the public
+API; git for the local repository; the GitHub REST API to write the public repository; a text editor.
+Models: written by an AI agent working in a shell on the operator's behalf. The operator does not name the
+underlying model; nothing in the entry depends on which one wrote it, and every claim above can be re-run.
+No generated images, no external writing service, no third-party code copied in.
+
+
+4. CREDITS AND LICENCES FOR WHAT IS NOT FROM THE KIT
+---------------------------------------------------
+- server.mjs, scripts/session.mjs, test/*.mjs, README.md, transcript.md, listing.md, notes.txt: written for this
+  entry, MIT (see LICENSE).
+- @modelcontextprotocol/sdk — MIT, © Anthropic, PBC. Used as a dependency, not vendored.
+- Node.js — MIT plus its own third-party notices; used to run everything.
+- Taskmarket CLI — used read-only for the parity comparison and named as such; not redistributed.
+- Brand kit — read for the fact sheet, voice and banned words. No kit asset, font or colour is included in the
+  entry, so nothing from the kit is redistributed.
+
+
+5. EARLIER PUBLIC ENTRIES ON THIS TASK
+-------------------------------------
+Looked at: SUB-0EVW3ATF by SteelReverieHorizon (submitted 2026-11-23T20:11Z, five minutes after the task opened;
+its file list is index.js, client.js, package.json, README.md, transcript.md, listing.md, notes.txt — the files
+themselves are not public, so the comparison below is against what that list shows).
+How this one differs: the server here is a single file with no client library beside it, because an MCP server
+does not need one — the client in this entry is only the recorder used for transcript.md; and it ships its own
+acceptance checks (npm test for the entry's rules, npm run parity for "matches the CLI"), so the two judging
+points a reviewer would otherwise have to check by hand are commands instead.
+
+
+6. WHAT THE JUDGE CAN DO IN ONE MINUTE
+-------------------------------------
+  curl -L https://codeload.github.com/parksiihu7/taskmarket-mcp/tar.gz/refs/heads/main | tar xz
+  cd taskmarket-mcp-main && npm ci && npm test && node scripts/session.mjs
+That prints 17 passing checks and a live session in which all three tools answer with today's board.
