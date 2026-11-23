@@ -3,7 +3,7 @@
 **Taskmarket MCP** — a read-only MCP server so any MCP client can answer *"what open Taskmarket tasks fit me?"*
 Three tools, one dependency, no wallet.
 
-- Repository: https://github.com/parksiihu7/taskmarket-mcp (commit `bc02635`)
+- Repository: https://github.com/parksiihu7/taskmarket-mcp (public, MIT)
 - One command: `npx -y github:parksiihu7/taskmarket-mcp`
 - Licence: MIT
 
